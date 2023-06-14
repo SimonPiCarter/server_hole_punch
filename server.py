@@ -177,7 +177,7 @@ class Session:
 			address_list = []
 			for client in self.registered_clients:
 				if not client.name == addressed_client.name:
-					address_list.append(client.name + ":" + address_to_string((client.ip, client.port))+":"+str(self.host_ip==client.ip and self.host_port==client.port))
+					address_list.append(client.name + ":" + address_to_string((client.ip, client.port))+":"+str(self.host_ip==client.ip and self.host_port==client.port)+":"+address_to_string((client.local_ip, client.local_port)))
 			address_string = ",".join(address_list)
 			message = bytes( "peers:" + address_string, "utf-8")
 			self.server.transport.write(message, (addressed_client.ip, addressed_client.port))
