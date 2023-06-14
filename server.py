@@ -105,7 +105,7 @@ class ServerProtocol(DatagramProtocol):
 			c_local_ip = split[4]
 			c_local_port = split[5]
 			c_ip, c_port = address
-			print("rc ",c_ip," ",c_port)
+			print("rc ",c_ip," ",c_port," ",c_local_ip," ",c_local_port)
 			try:
 				self.register_client(c_name, c_session, c_ip, c_port, c_local_ip, c_local_port, c_nickname)
 				self.transport.write(bytes('ok:'+str(c_port)+':'+c_ip,"utf-8"), address)
