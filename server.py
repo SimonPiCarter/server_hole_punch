@@ -25,12 +25,12 @@ class ServerProtocol(DatagramProtocol):
 	def name_is_registered(self, name):
 		return name in self.registered_clients
 
-	def create_session(self, s_id, client_list,host_ip):
+	def create_session(self, s_id, client_list,host_ip,host_port):
 		if s_id in self.active_sessions:
 			print("Tried to create existing session")
 			raise(ServerFail("Tried to create existing session"))
 
-		self.active_sessions[s_id] = Session(s_id, client_list, self, host_ip)
+		self.active_sessions[s_id] = Session(s_id, client_list, self, host_ip, host_port)
 
 	def remove_session(self, s_id):
 		try:
@@ -92,7 +92,7 @@ class ServerProtocol(DatagramProtocol):
 			session = split[1]
 			max_clients = split[2]
 			try:
-				self.create_session(session, max_clients,c_ip)
+				self.create_session(session, max_clients,c_ip, c_port)
 			except ServerFail as e:
 				self.transport.write(bytes('close:'+str(e),"utf-8"), address)
 
@@ -138,18 +138,19 @@ class ServerProtocol(DatagramProtocol):
 			except KeyError:
 				print("Host tried to close non-existing session")
 			else:
-				if len(s.registered_clients) == 0 or s.host_ip != c_ip:
+				if len(s.registered_clients) == 0 or s.host_ip != c_ip or s.host_port != c_port:
 					return #just a teensy bit of security, non hosts can't close session
 				s.close(c_reason)
 
 
 
 class Session:
-	def __init__(self, session_id, max_clients, server, host_ip):
+	def __init__(self, session_id, max_clients, server, host_ip, host_port):
 		self.id = session_id
 		self.client_max = max_clients
 		self.server = server
 		self.host_ip = host_ip
+		self.host_port = host_port
 		self.registered_clients = []
 		reactor.callLater(600, server.remove_session,session_id) #timeout session after 10 minutes, just in case
 
@@ -176,7 +177,7 @@ class Session:
 			address_list = []
 			for client in self.registered_clients:
 				if not client.name == addressed_client.name:
-					address_list.append(client.name + ":" + address_to_string((client.ip, client.port))+":"+str(self.host_ip==client.ip))
+					address_list.append(client.name + ":" + address_to_string((client.ip, client.port))+":"+str(self.host_ip==client.ip and self.host_port==client.port))
 			address_string = ",".join(address_list)
 			message = bytes( "peers:" + address_string, "utf-8")
 			self.server.transport.write(message, (addressed_client.ip, addressed_client.port))
