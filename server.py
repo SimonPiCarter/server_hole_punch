@@ -43,7 +43,7 @@ class ServerProtocol(DatagramProtocol):
 			print("Tried to terminate non-existing session")
 
 
-	def register_client(self, c_name, c_session, c_ip, c_port, c_nickname):
+	def register_client(self, c_name, c_session, c_ip, c_port, c_local_ip, c_local_port, c_nickname):
 		if self.name_is_registered(c_name):
 			if self.registered_clients[c_name].ip == c_ip: #disconnect old client if they have the same ip
 				self.client_checkout(c_name)
@@ -57,7 +57,7 @@ class ServerProtocol(DatagramProtocol):
 			print("Session full")
 			raise(ServerFail("Session full"))
 		else:
-			new_client = Client(c_name, c_session, c_ip, c_port, c_nickname)
+			new_client = Client(c_name, c_session, c_ip, c_port, c_local_ip, c_local_port, c_nickname)
 			self.registered_clients[c_name] = new_client
 			self.active_sessions[c_session].client_registered(new_client)
 
@@ -102,10 +102,12 @@ class ServerProtocol(DatagramProtocol):
 			c_name = split[1]
 			c_session = split[2]
 			c_nickname = split[3]
+			c_local_ip = split[4]
+			c_local_port = split[5]
 			c_ip, c_port = address
 			print("rc ",c_ip," ",c_port)
 			try:
-				self.register_client(c_name, c_session, c_ip, c_port, c_nickname)
+				self.register_client(c_name, c_session, c_ip, c_port, c_local_ip, c_local_port, c_nickname)
 				self.transport.write(bytes('ok:'+str(c_port)+':'+c_ip,"utf-8"), address)
 			except ServerFail as e:
 				self.transport.write(bytes('close:'+str(e),"utf-8"), address)
@@ -197,11 +199,13 @@ class Client:
 	def confirmation_received(self):
 		self.received_peer_info = True
 
-	def __init__(self, c_name, c_session, c_ip, c_port, c_nickname):
+	def __init__(self, c_name, c_session, c_ip, c_port, c_local_ip, c_local_port, c_nickname):
 		self.name = c_name
 		self.session_id = c_session
 		self.ip = c_ip
 		self.port = c_port
+		self.local_ip = c_local_ip
+		self.local_port = c_local_port
 		self.nickname = c_nickname
 		self.received_peer_info = False
 
