@@ -92,6 +92,7 @@ class ServerProtocol(DatagramProtocol):
 			session = split[1]
 			max_clients = split[2]
 			try:
+				print("create session ",c_ip," ",c_port)
 				self.create_session(session, max_clients,c_ip, c_port)
 			except ServerFail as e:
 				self.transport.write(bytes('close:'+str(e),"utf-8"), address)
