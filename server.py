@@ -166,7 +166,7 @@ class Session:
 	def client_registered(self, client):
 		if client in self.registered_clients: return
 		# update port of host if first client
-		if self.registered_clients.size() == 0 and client.ip == self.host_ip:
+		if len(self.registered_clients) == 0 and client.ip == self.host_ip:
 			self.host_port = client.port
 		# print("Client %c registered for Session %s" % client.name, self.id)
 		self.registered_clients.append(client)
